@@ -1,0 +1,117 @@
+---
+title: "econometrie"
+author: "boulila aicha"
+date: "7 décembre 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r cars, echo=FALSE}
+library(readxl)
+library(plm)
+
+```
+
+
+
+```{r , echo=FALSE}
+library(readxl)
+library(plm)
+data<- read_excel("C:/Users/aycha/Downloads/Exo Panel 1.xlsx")
+attach(data)
+head(data)
+```
+
+
+
+```{r , echo=TRUE}
+fixed=plm(I ~  K+F, data= data,index=c("Firm","Year"),model="within")
+fixed
+```
+
+
+```{r , echo=TRUE}
+s1=summary(fixed)
+s1
+
+```
+
+```{r , echo=TRUE}
+
+homogene=lm(I ~  K+F, data= data)
+homogene
+s2=summary(homogene)
+s2
+
+```
+
+```{r , echo=TRUE}
+SCR1=sum(s1$residuals^2)
+SCR1
+
+SCR2=sum(s2$residuals^2)
+SCR2
+
+df_fixed=fixed$df.residual
+df_fixed
+
+df_h=homogene$df.residual
+df_h
+
+
+
+test=(SCR1-SCR2)/(df_h-df_fixed)/(SCR2/df_fixed)
+test
+
+df_h-df_fixed
+
+
+random=plm(I ~  K+F, data= data,index=c("Firm","Year"),model="between")
+random
+
+summary(random)
+
+diff=fixed$coefficients-random$coefficients[2:3]
+diff
+
+
+m1=fixed$vcov
+m1
+
+m2=random$vcov
+m2
+
+m23=m2[2:3,2:3]
+
+
+diffv=m23-m1
+diffv
+
+
+library(matlib)
+
+idiff=inv(diffv)
+idiff
+diff
+
+library(Matrix)
+t(diff)
+t(as.matrix(diff))
+tdiff=c(0.2780339 ,-0.02452228)
+is.vector(tdiff)
+tdiff
+t(t(tdiff))
+
+M=diff%*%idiff%*%t(t(tdiff))
+M
+
+dchisq(M,2)
+
+plmtest(fixed,random,type = "bp", effect = "individual")
+
+
+
+```
